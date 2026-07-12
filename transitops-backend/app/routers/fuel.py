@@ -16,14 +16,23 @@ def create_fuel_log(
     session: Session = Depends(get_session),
     current_user: dict = Depends(require_roles("Fleet Manager", "Financial Analyst")),
 ):
+    # Verify vehicle exists
     vehicle = session.get(Vehicle, payload.vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
+    # Verify trip exists and belongs to the selected vehicle
     if payload.trip_id:
         trip = session.get(Trip, payload.trip_id)
+
         if not trip:
             raise HTTPException(status_code=404, detail="Trip not found")
+
+        if trip.vehicle_id != payload.vehicle_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Trip does not belong to the selected vehicle",
+            )
 
     fuel_log = FuelLog(**payload.model_dump())
 
@@ -78,15 +87,31 @@ def update_fuel_log(
     if not fuel_log:
         raise HTTPException(status_code=404, detail="Fuel log not found")
 
+    # Verify vehicle if updated
     if payload.vehicle_id is not None:
         vehicle = session.get(Vehicle, payload.vehicle_id)
+
         if not vehicle:
             raise HTTPException(status_code=404, detail="Vehicle not found")
 
+    # Verify trip if updated and ensure it belongs to the vehicle
     if payload.trip_id is not None:
         trip = session.get(Trip, payload.trip_id)
+
         if not trip:
             raise HTTPException(status_code=404, detail="Trip not found")
+
+        vehicle_id = (
+            payload.vehicle_id
+            if payload.vehicle_id is not None
+            else fuel_log.vehicle_id
+        )
+
+        if trip.vehicle_id != vehicle_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Trip does not belong to the selected vehicle",
+            )
 
     update_data = payload.model_dump(exclude_unset=True)
 
