@@ -17,10 +17,14 @@ def create_vehicle(
     current_user: dict = Depends(require_roles("Fleet Manager")),
 ):
     existing = session.exec(
-        select(Vehicle).where(Vehicle.registration_number == payload.registration_number)
+        select(Vehicle).where(
+            Vehicle.registration_number == payload.registration_number
+        )
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Registration number already exists")
+        raise HTTPException(
+            status_code=400, detail="Registration number already exists"
+        )
 
     vehicle = Vehicle(**payload.model_dump())
     session.add(vehicle)

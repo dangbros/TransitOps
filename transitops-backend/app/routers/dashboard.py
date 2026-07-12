@@ -32,23 +32,15 @@ def get_kpis(
             status_counts[vehicle.status.value] = 1
 
     # 2. Fleet Utilization Calculation
-    total_non_retired = sum(
-        1 for v in vehicles if v.status != VehicleStatus.retired
-    )
-    vehicles_on_trip = sum(
-        1 for v in vehicles if v.status == VehicleStatus.on_trip
-    )
+    total_non_retired = sum(1 for v in vehicles if v.status != VehicleStatus.retired)
+    vehicles_on_trip = sum(1 for v in vehicles if v.status == VehicleStatus.on_trip)
     fleet_utilization = (
-        (vehicles_on_trip / total_non_retired * 100)
-        if total_non_retired > 0
-        else 0.0
+        (vehicles_on_trip / total_non_retired * 100) if total_non_retired > 0 else 0.0
     )
 
     # 3. Vehicle ROI Calculation
     total_revenue = session.exec(select(func.sum(Trip.revenue))).one() or 0.0
-    total_maintenance = (
-        session.exec(select(func.sum(MaintenanceLog.cost))).one() or 0.0
-    )
+    total_maintenance = session.exec(select(func.sum(MaintenanceLog.cost))).one() or 0.0
     total_fuel = session.exec(select(func.sum(FuelLog.cost))).one() or 0.0
     total_acquisition = sum(v.acquisition_cost for v in vehicles)
 
