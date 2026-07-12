@@ -5,12 +5,17 @@ from typing import Optional, List
 from app.db.database import get_session
 from app.models import Vehicle, VehicleStatus
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate, VehicleResponse
+from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 
 @router.post("", response_model=VehicleResponse)
-def create_vehicle(payload: VehicleCreate, session: Session = Depends(get_session)):
+def create_vehicle(
+    payload: VehicleCreate,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     existing = session.exec(
         select(Vehicle).where(Vehicle.registration_number == payload.registration_number)
     ).first()
@@ -30,6 +35,7 @@ def list_vehicles(
     type: Optional[str] = None,
     region: Optional[str] = None,
     session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
 ):
     query = select(Vehicle)
     if status:
@@ -44,7 +50,11 @@ def list_vehicles(
 
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
-def get_vehicle(vehicle_id: int, session: Session = Depends(get_session)):
+def get_vehicle(
+    vehicle_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
     vehicle = session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -52,7 +62,12 @@ def get_vehicle(vehicle_id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{vehicle_id}", response_model=VehicleResponse)
-def update_vehicle(vehicle_id: int, payload: VehicleUpdate, session: Session = Depends(get_session)):
+def update_vehicle(
+    vehicle_id: int,
+    payload: VehicleUpdate,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     vehicle = session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -68,7 +83,11 @@ def update_vehicle(vehicle_id: int, payload: VehicleUpdate, session: Session = D
 
 
 @router.delete("/{vehicle_id}")
-def delete_vehicle(vehicle_id: int, session: Session = Depends(get_session)):
+def delete_vehicle(
+    vehicle_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     vehicle = session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")

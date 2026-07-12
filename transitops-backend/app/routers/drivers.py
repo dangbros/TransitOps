@@ -5,12 +5,17 @@ from typing import Optional, List
 from app.db.database import get_session
 from app.models import Driver, DriverStatus
 from app.schemas.driver import DriverCreate, DriverUpdate, DriverResponse
+from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(prefix="/drivers", tags=["Drivers"])
 
 
 @router.post("", response_model=DriverResponse)
-def create_driver(payload: DriverCreate, session: Session = Depends(get_session)):
+def create_driver(
+    payload: DriverCreate,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
+):
     existing = session.exec(
         select(Driver).where(Driver.license_number == payload.license_number)
     ).first()
@@ -28,6 +33,7 @@ def create_driver(payload: DriverCreate, session: Session = Depends(get_session)
 def list_drivers(
     status: Optional[DriverStatus] = None,
     session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
 ):
     query = select(Driver)
     if status:
@@ -38,7 +44,11 @@ def list_drivers(
 
 
 @router.get("/{driver_id}", response_model=DriverResponse)
-def get_driver(driver_id: int, session: Session = Depends(get_session)):
+def get_driver(
+    driver_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
     driver = session.get(Driver, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
@@ -46,7 +56,12 @@ def get_driver(driver_id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{driver_id}", response_model=DriverResponse)
-def update_driver(driver_id: int, payload: DriverUpdate, session: Session = Depends(get_session)):
+def update_driver(
+    driver_id: int,
+    payload: DriverUpdate,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
+):
     driver = session.get(Driver, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
@@ -62,7 +77,11 @@ def update_driver(driver_id: int, payload: DriverUpdate, session: Session = Depe
 
 
 @router.delete("/{driver_id}")
-def delete_driver(driver_id: int, session: Session = Depends(get_session)):
+def delete_driver(
+    driver_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
+):
     driver = session.get(Driver, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")

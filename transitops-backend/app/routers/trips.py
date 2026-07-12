@@ -6,12 +6,17 @@ from typing import Optional, List
 from app.db.database import get_session
 from app.models import Trip, TripStatus, Vehicle, VehicleStatus, Driver, DriverStatus, FuelLog
 from app.schemas.trip import TripCreate, TripCompleteRequest, TripResponse
+from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
 
 @router.post("", response_model=TripResponse)
-def create_trip(payload: TripCreate, session: Session = Depends(get_session)):
+def create_trip(
+    payload: TripCreate,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     vehicle = session.get(Vehicle, payload.vehicle_id)
     driver = session.get(Driver, payload.driver_id)
 
@@ -34,6 +39,7 @@ def create_trip(payload: TripCreate, session: Session = Depends(get_session)):
 def list_trips(
     status: Optional[TripStatus] = None,
     session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
 ):
     query = select(Trip)
     if status:
@@ -42,7 +48,11 @@ def list_trips(
 
 
 @router.get("/{trip_id}", response_model=TripResponse)
-def get_trip(trip_id: int, session: Session = Depends(get_session)):
+def get_trip(
+    trip_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
     trip = session.get(Trip, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -50,7 +60,11 @@ def get_trip(trip_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/{trip_id}/dispatch", response_model=TripResponse)
-def dispatch_trip(trip_id: int, session: Session = Depends(get_session)):
+def dispatch_trip(
+    trip_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     trip = session.get(Trip, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -85,7 +99,12 @@ def dispatch_trip(trip_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/{trip_id}/complete", response_model=TripResponse)
-def complete_trip(trip_id: int, payload: TripCompleteRequest, session: Session = Depends(get_session)):
+def complete_trip(
+    trip_id: int,
+    payload: TripCompleteRequest,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Driver")),
+):
     trip = session.get(Trip, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
@@ -125,7 +144,11 @@ def complete_trip(trip_id: int, payload: TripCompleteRequest, session: Session =
 
 
 @router.post("/{trip_id}/cancel", response_model=TripResponse)
-def cancel_trip(trip_id: int, session: Session = Depends(get_session)):
+def cancel_trip(
+    trip_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
     trip = session.get(Trip, trip_id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
