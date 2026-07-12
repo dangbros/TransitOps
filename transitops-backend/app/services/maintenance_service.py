@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models import (
     MaintenanceLog,
@@ -35,6 +35,40 @@ class MaintenanceService:
         )
 
         vehicle.status = VehicleStatus.in_shop
+
+        session.add(maintenance)
+        session.add(vehicle)
+
+        session.commit()
+
+        session.refresh(maintenance)
+
+        return maintenance
+
+    @staticmethod
+    def get_all(session: Session):
+        return session.exec(select(MaintenanceLog)).all()
+
+    @staticmethod
+    def complete(
+        session: Session,
+        maintenance: MaintenanceLog,
+    ):
+        if maintenance.status == MaintenanceStatus.closed:
+            raise HTTPException(
+                status_code=400,
+                detail="Maintenance is already completed.",
+            )
+
+        vehicle = session.get(
+            Vehicle,
+            maintenance.vehicle_id,
+        )
+
+        maintenance.status = MaintenanceStatus.closed
+        maintenance.end_date = date.today()
+
+        vehicle.status = VehicleStatus.available
 
         session.add(maintenance)
         session.add(vehicle)
