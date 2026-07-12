@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-
+from sqlmodel import Session, select, func
 from app.db.database import get_session
 from app.models import User, Role
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.deps import get_current_user
+
 
 from app.core.security import (
     create_access_token,
@@ -24,7 +24,10 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ):
-    user = session.exec(select(User).where(User.email == form_data.username)).first()
+    username_lower = form_data.username.strip().lower()
+    user = session.exec(
+        select(User).where(func.lower(User.email) == username_lower)
+    ).first()
 
     if user is None:
         raise HTTPException(
@@ -73,26 +76,34 @@ def signup(
     payload: UserCreate,
     session: Session = Depends(get_session),
 ):
-    # Check if email already exists
-    existing = session.exec(select(User).where(User.email == payload.email)).first()
-
+    email_lower = payload.email.strip().lower()
+    existing = session.exec(
+        select(User).where(func.lower(User.email) == email_lower)
+    ).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
 
-    # Public signup always creates a Driver account
-    role = session.exec(select(Role).where(Role.name == "Driver")).first()
+    # Map frontend role keys to database names
+    role_mapping = {
+        "fleet_manager": "Fleet Manager",
+        "driver": "Driver",
+        "safety_officer": "Safety Officer",
+        "financial_analyst": "Financial Analyst",
+    }
+    role_name = role_mapping.get(payload.role, payload.role)
 
+    role = session.exec(select(Role).where(Role.name == role_name)).first()
     if not role:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Driver role not found. Please seed the database first.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Role '{payload.role}' does not exist",
         )
 
     new_user = User(
-        email=payload.email,
+        email=email_lower,
         password_hash=hash_password(payload.password),
         role_id=role.id,
     )

@@ -9,6 +9,7 @@ class LoginRequest(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    role: str
 
 
 class TokenResponse(BaseModel):
