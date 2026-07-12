@@ -6,7 +6,16 @@ from sqlmodel import Session, select, func
 from typing import Dict, Any
 
 from app.db.database import get_session
-from app.models import Vehicle, VehicleStatus, Trip, TripStatus, MaintenanceLog, FuelLog, Driver, DriverStatus
+from app.models import (
+    Vehicle,
+    VehicleStatus,
+    Trip,
+    TripStatus,
+    MaintenanceLog,
+    FuelLog,
+    Driver,
+    DriverStatus,
+)
 from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard / Reports"])
@@ -39,17 +48,26 @@ def get_kpis(
     )
 
     # 3. Trip Status Counts (Active and Pending)
-    active_trips_count = session.exec(
-        select(func.count(Trip.id)).where(Trip.status == TripStatus.dispatched)
-    ).one() or 0
-    pending_trips_count = session.exec(
-        select(func.count(Trip.id)).where(Trip.status == TripStatus.draft)
-    ).one() or 0
+    active_trips_count = (
+        session.exec(
+            select(func.count(Trip.id)).where(Trip.status == TripStatus.dispatched)
+        ).one()
+        or 0
+    )
+    pending_trips_count = (
+        session.exec(
+            select(func.count(Trip.id)).where(Trip.status == TripStatus.draft)
+        ).one()
+        or 0
+    )
 
     # 4. Drivers On Duty Count
-    drivers_on_duty_count = session.exec(
-        select(func.count(Driver.id)).where(Driver.status == DriverStatus.on_trip)
-    ).one() or 0
+    drivers_on_duty_count = (
+        session.exec(
+            select(func.count(Driver.id)).where(Driver.status == DriverStatus.on_trip)
+        ).one()
+        or 0
+    )
 
     # 5. Financials
     total_revenue = session.exec(select(func.sum(Trip.revenue))).one() or 0.0
@@ -64,10 +82,16 @@ def get_kpis(
     )
 
     # 6. Fuel Efficiency Calculation from Completed Trips (Distance / Fuel)
-    completed_trips = session.exec(select(Trip).where(Trip.status == TripStatus.completed)).all()
-    total_distance_covered = sum(t.actual_distance for t in completed_trips if t.actual_distance)
-    total_fuel_consumed = sum(t.fuel_consumed for t in completed_trips if t.fuel_consumed)
-    
+    completed_trips = session.exec(
+        select(Trip).where(Trip.status == TripStatus.completed)
+    ).all()
+    total_distance_covered = sum(
+        t.actual_distance for t in completed_trips if t.actual_distance
+    )
+    total_fuel_consumed = sum(
+        t.fuel_consumed for t in completed_trips if t.fuel_consumed
+    )
+
     fuel_efficiency = (
         (total_distance_covered / total_fuel_consumed)
         if total_fuel_consumed > 0
@@ -90,6 +114,42 @@ def get_kpis(
             "overall_roi": round(roi, 4),
         },
     }
+
+
+@router.get("/fuel-efficiency")
+def fuel_efficiency(
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
+):
+    trips = session.exec(select(Trip)).all()
+
+    results = []
+
+    for trip in trips:
+        if trip.actual_distance is None:
+            continue
+
+        fuel_logs = session.exec(
+            select(FuelLog).where(FuelLog.trip_id == trip.id)
+        ).all()
+
+        total_fuel = sum(log.liters for log in fuel_logs)
+
+        efficiency = (
+            round(trip.actual_distance / total_fuel, 2) if total_fuel > 0 else 0
+        )
+
+        results.append(
+            {
+                "trip_id": trip.id,
+                "vehicle_id": trip.vehicle_id,
+                "distance": trip.actual_distance,
+                "fuel_consumed": total_fuel,
+                "fuel_efficiency": efficiency,
+            }
+        )
+
+    return results
 
 
 @router.get("/export-trips")
