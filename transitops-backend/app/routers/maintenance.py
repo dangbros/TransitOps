@@ -8,6 +8,7 @@ from app.schemas.maintenance import (
     MaintenanceResponse,
 )
 from app.services.maintenance_service import MaintenanceService
+from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(
     prefix="/maintenance",
@@ -22,6 +23,7 @@ router = APIRouter(
 def create_maintenance(
     payload: MaintenanceCreate,
     session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
 ):
 
     vehicle = session.get(
@@ -49,6 +51,7 @@ def create_maintenance(
 )
 def get_all_maintenance(
     session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user),
 ):
     return MaintenanceService.get_all(session)
 
@@ -60,6 +63,7 @@ def get_all_maintenance(
 def complete_maintenance(
     maintenance_id: int,
     session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
 ):
     maintenance = session.get(
         MaintenanceLog,
