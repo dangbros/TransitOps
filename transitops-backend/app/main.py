@@ -1,24 +1,15 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
-
 from app.db.database import create_db_and_tables
 from app.routers.auth_router import router as auth_router
 
+app = FastAPI(title="TransitOps API")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Runs when the application starts
+@app.on_event("startup")
+def on_startup():
     create_db_and_tables()
-    yield
-    # Runs when the application shuts down
-    # (Nothing to clean up yet)
 
-
-app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router)
 
-
 @app.get("/")
-def home():
-    return {"message": "TransitOps Backend Running"}
+def root():
+    return {"message": "TransitOps API is running"}
