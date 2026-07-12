@@ -112,6 +112,28 @@ def signup(
     session.commit()
     session.refresh(new_user)
 
+    # Auto-create driver profile in drivers table if role is Driver
+    if role.name == "Driver":
+        from app.models import Driver, DriverStatus
+        from datetime import date, timedelta
+        import random
+        
+        email_prefix = email_lower.split("@")[0]
+        # Generate a unique placeholder license number to avoid DB unique constraint failures
+        placeholder_license = f"DL-{email_prefix.upper()}-{random.randint(1000, 9999)}"
+        
+        new_driver = Driver(
+            name=email_prefix.capitalize(),
+            license_number=placeholder_license,
+            license_category="Class C",
+            license_expiry_date=date.today() + timedelta(days=365),
+            contact_number=None,
+            safety_score=1.0,
+            status=DriverStatus.available,
+        )
+        session.add(new_driver)
+        session.commit()
+
     access_token = create_access_token(
         {
             "sub": str(new_user.id),

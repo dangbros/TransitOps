@@ -165,7 +165,7 @@ const SafetyOfficerPage = () => {
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-white outline-none focus:border-blue-500"
                 >
                   <option value="">Choose Vehicle</option>
-                  {vehicles.map((v) => (
+                  {vehicles.filter(v => v.status && v.status.toLowerCase() === "available").map((v) => (
                     <option key={v.id} value={v.id}>{v.name_model} ({v.registration_number})</option>
                   ))}
                 </select>
