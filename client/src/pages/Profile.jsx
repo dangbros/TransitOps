@@ -1,126 +1,205 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { getDrivers } from "../api/auth";
 import {
-    FaUserCircle,
-    FaEnvelope,
-    FaUserTag,
-    FaCalendarAlt,
-    FaPhoneAlt,
+  FaUserCircle,
+  FaEnvelope,
+  FaUserTag,
+  FaIdCard,
+  FaStar,
+  FaInfoCircle,
 } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 const Profile = () => {
-    // Dummy user data
-    const user = {
-        name: "John Doe",
-        email: "john.doe@transitops.com",
-        role: "Fleet Manager",
-        phone: "+91 9876543210",
-        joined: "12 Jan 2026",
+  const { user, logout } = useAuth();
+  const [driverProfile, setDriverProfile] = useState(null);
+  const [loadingDriver, setLoadingDriver] = useState(false);
+
+  useEffect(() => {
+    const fetchDriverDetails = async () => {
+      if (user && user.role === "Driver") {
+        setLoadingDriver(true);
+        try {
+          const driversData = await getDrivers();
+          const emailPrefix = user.email.split("@")[0].toLowerCase();
+          
+          // Match driver profile by email prefix
+          const matched = driversData.find((d) => d.name.toLowerCase().includes(emailPrefix));
+          if (matched) {
+            setDriverProfile(matched);
+          }
+        } catch (err) {
+          toast.error("Failed to load driver profile details.");
+        } finally {
+          setLoadingDriver(false);
+        }
+      }
     };
 
+    fetchDriverDetails();
+  }, [user]);
+
+  // If no user context, show loading
+  if (!user) {
     return (
-        <div className="min-h-full bg-gray-100 p-8">
-            <div className="max-w-5xl mx-auto">
-
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                    <div className="flex flex-col md:flex-row items-center gap-6">
-
-                        <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center">
-                            <FaUserCircle className="text-7xl text-blue-600" />
-                        </div>
-
-                        <div className="flex-1 text-center md:text-left">
-                            <h1 className="text-3xl font-bold text-gray-800">
-                                {user.name}
-                            </h1>
-
-                            <p className="text-gray-500 mt-2">
-                                {user.role}
-                            </p>
-
-                            <button className="mt-5 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                Edit Profile
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Personal Information */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mt-8 p-8">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-                        Personal Information
-                    </h2>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-
-                        <div className="flex items-center gap-4">
-                            <FaUserCircle className="text-blue-600 text-xl" />
-
-                            <div>
-                                <p className="text-sm text-gray-500">Full Name</p>
-                                <p className="font-semibold">{user.name}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <FaEnvelope className="text-blue-600 text-xl" />
-
-                            <div>
-                                <p className="text-sm text-gray-500">Email</p>
-                                <p className="font-semibold">{user.email}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <FaUserTag className="text-blue-600 text-xl" />
-
-                            <div>
-                                <p className="text-sm text-gray-500">Role</p>
-                                <p className="font-semibold">{user.role}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <FaPhoneAlt className="text-blue-600 text-xl" />
-
-                            <div>
-                                <p className="text-sm text-gray-500">Phone</p>
-                                <p className="font-semibold">{user.phone}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <FaCalendarAlt className="text-blue-600 text-xl" />
-
-                            <div>
-                                <p className="text-sm text-gray-500">Joined On</p>
-                                <p className="font-semibold">{user.joined}</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* Account Settings */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mt-8 p-8">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-                        Account Settings
-                    </h2>
-
-                    <div className="flex flex-wrap gap-4">
-                        <button className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                            Change Password
-                        </button>
-
-                        <button className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                            Logout
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+      <div className="flex h-full items-center justify-center p-8 text-slate-500 font-semibold">
+        Loading profile details...
+      </div>
     );
+  }
+
+  // Get display name from email prefix
+  const displayName = user.email ? user.email.split("@")[0] : "User";
+
+  return (
+    <div className="min-h-full bg-slate-50 p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+              <FaUserCircle className="text-6xl text-blue-600" />
+            </div>
+
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl font-extrabold text-slate-800 capitalize">
+                {driverProfile ? driverProfile.name : displayName}
+              </h1>
+              <p className="text-blue-600 font-semibold mt-1">
+                {user.role}
+              </p>
+              <p className="text-xs text-slate-400 mt-2">
+                Active Database Session
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Details */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 mt-8 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6">
+            Account Information
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                <FaUserCircle size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-semibold">Display Username</p>
+                <p className="font-semibold text-slate-700 capitalize">
+                  {driverProfile ? driverProfile.name : displayName}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                <FaEnvelope size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-semibold">Email Address</p>
+                <p className="font-semibold text-slate-700">{user.email}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                <FaUserTag size={20} />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-semibold">Account Role</p>
+                <p className="font-semibold text-slate-700">{user.role}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Driver-Specific Information Card */}
+        {user.role === "Driver" && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 mt-8 p-8">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
+              Driver Profile Details
+            </h2>
+
+            {loadingDriver ? (
+              <p className="text-slate-400 text-sm">Fetching driver license details...</p>
+            ) : driverProfile ? (
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                    <FaIdCard size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold">License Number</p>
+                    <p className="font-semibold text-slate-700 font-mono">{driverProfile.license_number}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                    <FaIdCard size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold">License Category / Expiry</p>
+                    <p className="font-semibold text-slate-700">
+                      {driverProfile.license_category} (Expires: {driverProfile.license_expiry_date})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                    <FaStar size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold">Safety Score</p>
+                    <p className="font-semibold text-slate-700">
+                      {Math.round(driverProfile.safety_score * 100)}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-slate-50 rounded-xl text-blue-600">
+                    <FaInfoCircle size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold">Duty Status</p>
+                    <span className="px-2.5 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
+                      {driverProfile.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-slate-400 text-sm">
+                No matched driver profile found. Please register this driver name ("{displayName}") in the Fleet Manager admin panel to load license details.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Action Panel */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 mt-8 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6">
+            Account Controls
+          </h2>
+
+          <div className="flex gap-4">
+            <button
+              onClick={logout}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-2xl transition cursor-pointer"
+            >
+              Sign Out of Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Profile;
