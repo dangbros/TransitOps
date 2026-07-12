@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaTruckMoving } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -12,22 +13,17 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const ROLE_ROUTES = {
-    fleet_manager: "/dashboard/admin",
-    driver: "/dashboard/driver",
-    safety_officer: "/dashboard/safety-officer",
-    financial_analyst: "/dashboard/financial-analyst",
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const loggedInUser = await login(email, password);
-      navigate(ROLE_ROUTES[loggedInUser.role] || "/");
+      await login(email, password);
+      toast.success("Signed in successfully!");
+      navigate("/");
     } catch (err) {
       setError(err.message || "Invalid email or password.");
+      toast.error(err.message || "Invalid email or password.");
     } finally {
       setLoading(false);
     }

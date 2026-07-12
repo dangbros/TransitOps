@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaTruckMoving } from "react-icons/fa";
 import { ROLES } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -19,13 +20,6 @@ function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const ROLE_ROUTES = {
-    fleet_manager: "/dashboard/admin",
-    driver: "/dashboard/driver",
-    safety_officer: "/dashboard/safety-officer",
-    financial_analyst: "/dashboard/financial-analyst",
-  };
-
   const handleChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({
       ...prev,
@@ -38,10 +32,12 @@ function Signup() {
     setError("");
 
     if (!formData.role) {
+      toast.error("Please select a role.");
       return setError("Please select a role.");
     }
 
     if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match.");
       return setError("Passwords do not match.");
     }
 
@@ -50,11 +46,12 @@ function Signup() {
 
       const { confirmPassword, ...payload } = formData;
 
-      const newUser = await signup(payload);
-
-      navigate(ROLE_ROUTES[newUser.role] || "/");
+      await signup(payload);
+      toast.success("Account created successfully!");
+      navigate("/");
     } catch (err) {
       setError(err.message || "Signup failed.");
+      toast.error(err.message || "Signup failed.");
     } finally {
       setLoading(false);
     }
