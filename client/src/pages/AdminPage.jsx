@@ -129,15 +129,36 @@ const AdminPage = () => {
     }
   };
 
-  const handleDeleteVehicle = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
-    try {
-      await deleteVehicle(id);
-      toast.success("Vehicle deleted successfully!");
-      fetchData();
-    } catch (err) {
-      toast.error(err.message || "Failed to delete vehicle.");
-    }
+  const handleDeleteVehicle = (id) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2 p-1 text-slate-800">
+        <p className="text-sm font-bold">Delete this vehicle?</p>
+        <p className="text-xs text-slate-500">This action cannot be undone.</p>
+        <div className="flex justify-end gap-2 mt-3">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteVehicle(id);
+                toast.success("Vehicle deleted successfully!");
+                fetchData();
+              } catch (err) {
+                toast.error(err.message || "Failed to delete vehicle.");
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), { duration: 6000, position: "top-center" });
   };
 
   // Handlers for Drivers
@@ -169,15 +190,36 @@ const AdminPage = () => {
     }
   };
 
-  const handleDeleteDriver = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this driver?")) return;
-    try {
-      await deleteDriver(id);
-      toast.success("Driver profile deleted.");
-      fetchData();
-    } catch (err) {
-      toast.error(err.message || "Failed to delete driver.");
-    }
+  const handleDeleteDriver = (id) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2 p-1 text-slate-800">
+        <p className="text-sm font-bold">Delete this driver profile?</p>
+        <p className="text-xs text-slate-500">This action cannot be undone.</p>
+        <div className="flex justify-end gap-2 mt-3">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteDriver(id);
+                toast.success("Driver profile deleted.");
+                fetchData();
+              } catch (err) {
+                toast.error(err.message || "Failed to delete driver.");
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), { duration: 6000, position: "top-center" });
   };
 
   // Handlers for Trips
@@ -216,15 +258,36 @@ const AdminPage = () => {
     }
   };
 
-  const handleDeleteTrip = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this trip record?")) return;
-    try {
-      await deleteTrip(id);
-      toast.success("Trip deleted successfully!");
-      fetchData();
-    } catch (err) {
-      toast.error(err.message || "Failed to delete trip.");
-    }
+  const handleDeleteTrip = (id) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2 p-1 text-slate-800">
+        <p className="text-sm font-bold">Delete this trip record?</p>
+        <p className="text-xs text-slate-500">This action cannot be undone.</p>
+        <div className="flex justify-end gap-2 mt-3">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteTrip(id);
+                toast.success("Trip deleted successfully!");
+                fetchData();
+              } catch (err) {
+                toast.error(err.message || "Failed to delete trip.");
+              }
+            }}
+            className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), { duration: 6000, position: "top-center" });
   };
 
   // Live KPI mappings matching specifications exactly
