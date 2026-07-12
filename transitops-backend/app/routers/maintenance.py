@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
+from app.core.deps import require_roles
 from app.db.database import get_session
-from app.models import Vehicle, MaintenanceLog
+from app.models import MaintenanceLog, Vehicle
 from app.schemas.maintenance import (
     MaintenanceCreate,
     MaintenanceResponse,
 )
 from app.services.maintenance_service import MaintenanceService
-from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(
     prefix="/maintenance",
@@ -25,7 +25,6 @@ def create_maintenance(
     session: Session = Depends(get_session),
     current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
 ):
-
     vehicle = session.get(
         Vehicle,
         payload.vehicle_id,
@@ -51,7 +50,7 @@ def create_maintenance(
 )
 def get_all_maintenance(
     session: Session = Depends(get_session),
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_roles("Fleet Manager", "Safety Officer")),
 ):
     return MaintenanceService.get_all(session)
 
