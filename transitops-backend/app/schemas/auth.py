@@ -9,7 +9,6 @@ class LoginRequest(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role: str  # E.g. "Fleet Manager"
 
 
 class TokenResponse(BaseModel):

@@ -73,27 +73,22 @@ def signup(
     payload: UserCreate,
     session: Session = Depends(get_session),
 ):
+    # Check if email already exists
     existing = session.exec(select(User).where(User.email == payload.email)).first()
+
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
 
-    # Map frontend role keys to database names
-    role_mapping = {
-        "fleet_manager": "Fleet Manager",
-        "driver": "Driver",
-        "safety_officer": "Safety Officer",
-        "financial_analyst": "Financial Analyst",
-    }
-    role_name = role_mapping.get(payload.role, payload.role)
+    # Public signup always creates a Driver account
+    role = session.exec(select(Role).where(Role.name == "Driver")).first()
 
-    role = session.exec(select(Role).where(Role.name == role_name)).first()
     if not role:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Role '{payload.role}' does not exist",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Driver role not found. Please seed the database first.",
         )
 
     new_user = User(
@@ -101,6 +96,7 @@ def signup(
         password_hash=hash_password(payload.password),
         role_id=role.id,
     )
+
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
