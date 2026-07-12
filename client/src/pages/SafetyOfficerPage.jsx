@@ -35,6 +35,15 @@ const SafetyOfficerPage = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Auto-refresh when switching back to this tab
+    const handleFocus = () => {
+      fetchData();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const handleLogSubmit = async (e) => {
