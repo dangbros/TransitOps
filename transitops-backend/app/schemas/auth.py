@@ -6,6 +6,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    role: str  # E.g. "Fleet Manager"
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
