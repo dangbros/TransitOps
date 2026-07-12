@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.core.deps import get_current_user
 
 from app.core.security import (
     create_access_token,
@@ -50,3 +51,10 @@ def login(credentials: LoginRequest):
     return TokenResponse(
         access_token=access_token,
     )
+
+
+@router.get("/me")
+def get_me(
+    current_user=Depends(get_current_user),
+):
+    return current_user
