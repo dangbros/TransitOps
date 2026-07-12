@@ -75,7 +75,7 @@ const FinancialAnalystPage = () => {
 
   const getVehicleInfo = (vId) => {
     const vehicle = vehicles.find((v) => v.id === vId);
-    return vehicle ? `${vehicle.name} (${vehicle.license_plate})` : `Vehicle #${vId}`;
+    return vehicle ? `${vehicle.name_model} (${vehicle.registration_number})` : `Vehicle #${vId}`;
   };
 
   // Calculate totals
@@ -188,7 +188,7 @@ const FinancialAnalystPage = () => {
                 >
                   <option value="">Choose Vehicle</option>
                   {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>{v.name} ({v.license_plate})</option>
+                    <option key={v.id} value={v.id}>{v.name_model} ({v.registration_number})</option>
                   ))}
                 </select>
               </div>
