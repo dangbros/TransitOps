@@ -7,15 +7,17 @@ import { Outlet } from 'react-router'
 
 import Header from './components/Header'
 import Footer from './components/Footer'
+import BasePage from './pages/BasePage'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      <Header />
+      <BasePage />
+      {/* <Header />
       <Outlet />
-      <Footer />
+      <Footer /> */}
     </>
   )
 }
