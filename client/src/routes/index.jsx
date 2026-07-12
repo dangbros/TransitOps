@@ -1,32 +1,28 @@
 import { createBrowserRouter } from "react-router";
 import App from "../App";
 import Home from "../pages/Home";
-import SignIn from "../pages/SignIn";
+import Login from "../pages/login";
 import SignUp from "../pages/SignUp";
 
 const routes = createBrowserRouter([
-
     {
         path: "/",
         element: <App />,
         children: [
             {
                 index: true,
-                element: <Home />
+                element: <Home />,
             },
-            {
-
-            }
-        ]
+        ],
     },
     {
-        path: "/sign-in",
-        element: <SignIn />
+        path: "/login",
+        element: <Login />,
     },
     {
         path: "/sign-up",
-        element: <SignUp />
-    }
-])
+        element: <SignUp />,
+    },
+]);
 
-export default routes
+export default routes;

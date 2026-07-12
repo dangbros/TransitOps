@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import "./auth.css";
+import { FaTruckMoving } from "react-icons/fa";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -9,7 +8,6 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -27,59 +25,105 @@ function Login() {
   };
 
   return (
-    <div className="auth-page d-flex align-items-center justify-content-center min-vh-100 bg-light">
-      <div
-        className="card shadow-sm"
-        style={{ width: "100%", maxWidth: "400px" }}
-      >
-        <div className="card-body p-4">
-          <h3 className="auth-title mb-1 fw-bold text-center">TransitOps</h3>
-          <p className="text-muted text-center mb-4">Sign in to your account</p>
 
-          {error && <div className="alert alert-danger py-2">{error}</div>}
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email address
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+            <FaTruckMoving className="text-white text-4xl" />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          <h1 className="text-3xl font-bold text-gray-800 mt-5">
+            TransitOps
+          </h1>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-100 mt-2"
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          <p className="text-center mt-3 mb-0">
-            Don't have an account? <Link to="/signup">Sign up</Link>
+          <p className="text-gray-500 mt-2">
+            Sign in to your Fleet Management account
           </p>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+            </label>
+
+            <input
+              type="email"
+              placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+            </label>
+
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Forgot Password */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+
+        </form>
+
+        {/* Divider */}
+        <div className="my-8 flex items-center">
+          <div className="h-px flex-1 bg-gray-300"></div>
+          <span className="px-3 text-sm text-gray-500">OR</span>
+          <div className="h-px flex-1 bg-gray-300"></div>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-gray-500">
+          Don't have an account?{" "}
+          <Link
+            to="/sign-up"
+            className="font-semibold text-blue-600 hover:underline"
+          >
+            Create Account
+          </Link>
+        </p>
+
       </div>
     </div>
   );
