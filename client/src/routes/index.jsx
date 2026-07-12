@@ -3,6 +3,7 @@ import App from "../App";
 import Home from "../pages/Home";
 import Login from "../pages/login";
 import SignUp from "../pages/SignUp";
+import Profile from "../pages/Profile";
 
 const routes = createBrowserRouter([
     {
@@ -13,6 +14,10 @@ const routes = createBrowserRouter([
                 index: true,
                 element: <Home />,
             },
+            {
+                path: "/my-profile",
+                element: <Profile />
+            }
         ],
     },
     {

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router";
 
 const Header = () => {
     return (
@@ -10,9 +11,9 @@ const Header = () => {
             <div className="flex items-center gap-4">
                 <span className="font-medium">Admin</span>
 
-                <div className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold">
+                <Link to={"/my-profile"} className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center font-bold">
                     A
-                </div>
+                </Link>
             </div>
         </header>
     );
