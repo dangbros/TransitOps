@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.database import get_session
-from app.models.user import User
+from app.models import User, Role
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.deps import get_current_user
 
@@ -40,10 +40,14 @@ def login(
             detail="Invalid credentials",
         )
 
+    role = session.get(Role, user.role_id)
+    role_name = role.name if role else ""
+
     access_token = create_access_token(
         {
             "sub": str(user.id),
             "email": user.email,
+            "role": role_name,
             "role_id": user.role_id,
         }
     )
