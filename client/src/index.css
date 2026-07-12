@@ -1,1 +1,81 @@
 @import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, border-color, color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Global Dark Mode Overrides */
+.dark body {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #f8fafc !important;
+}
+
+/* Main background wrappers */
+.dark .bg-slate-50, 
+.dark .bg-gray-100,
+.dark .min-h-screen {
+  background-color: #0f172a !important;
+}
+
+/* Cards and Modals */
+.dark .bg-white {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+/* Borders */
+.dark .border-slate-100, 
+.dark .border-gray-200, 
+.dark .border-slate-200,
+.dark .divide-slate-50 > *,
+.dark .divide-y > * {
+  border-color: #334155 !important; /* slate-700 */
+}
+
+/* Primary text */
+.dark .text-slate-800, 
+.dark .text-gray-800, 
+.dark .text-slate-700,
+.dark .text-gray-700 {
+  color: #f8fafc !important; /* slate-50 */
+}
+
+/* Secondary text */
+.dark .text-slate-500, 
+.dark .text-gray-500, 
+.dark .text-slate-600,
+.dark .text-slate-400 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Forms and Inputs */
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important; /* slate-500 */
+}
+
+/* Tables */
+.dark th {
+  color: #94a3b8 !important;
+}
+
+.dark tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Inner card sub-sections (e.g. details lists, items) */
+.dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}

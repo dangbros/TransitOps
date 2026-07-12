@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -31,6 +31,21 @@ const links = [
 
 const Sidebar = () => {
   const { user } = useAuth();
+  const [dark, setDark] = useState(() => {
+    return document.documentElement.classList.contains("dark");
+  });
+
+  const toggleDarkMode = () => {
+    if (dark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setDark(true);
+    }
+  };
 
   const filteredLinks = links.filter((link) => {
     if (link.roles.length === 0) return true; // Profile
@@ -62,6 +77,24 @@ const Sidebar = () => {
           </NavLink>
         ))}
       </nav>
+
+      {/* Dark Mode Control in Sidebar footer */}
+      <div className="p-4 border-t border-blue-600 flex items-center justify-between">
+        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider">Dark Mode</span>
+        <button
+          onClick={toggleDarkMode}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none cursor-pointer ${
+            dark ? "bg-green-500" : "bg-blue-800"
+          }`}
+          title="Toggle Dark Mode"
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+              dark ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      </div>
     </aside>
   );
 };
