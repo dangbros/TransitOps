@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "../App";
 import Home from "../pages/Home";
 import Login from "../pages/login";
 import SignUp from "../pages/SignUp";
@@ -13,11 +12,31 @@ import SafetyOfficerPage from "../pages/SafetyOfficerPage";
 const routes = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <DashboardLayout />,
     children: [
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "dashboard/admin",
+        element: <AdminPage />,
+      },
+      {
+        path: "dashboard/driver",
+        element: <DriverPage />,
+      },
+      {
+        path: "dashboard/safety-officer",
+        element: <SafetyOfficerPage />,
+      },
+      {
+        path: "dashboard/financial-analyst",
+        element: <FinancialAnalystPage />,
+      },
+      {
+        path: "my-profile",
+        element: <Profile />,
       },
     ],
   },
@@ -28,38 +47,6 @@ const routes = createBrowserRouter([
   {
     path: "/sign-up",
     element: <SignUp />,
-  },
-  {
-    path: "/dashboard",
-    element: <DashboardLayout />,
-    children: [
-      {
-        path: "admin",
-        element: <AdminPage />,
-      },
-      {
-        path: "driver",
-        element: <DriverPage />,
-      },
-      {
-        path: "safety-officer",
-        element: <SafetyOfficerPage />,
-      },
-      {
-        path: "financial-analyst",
-        element: <FinancialAnalystPage />,
-      },
-    ],
-  },
-  {
-    path: "/my-profile",
-    element: <DashboardLayout />,
-    children: [
-      {
-        index: true,
-        element: <Profile />,
-      },
-    ],
   },
 ]);
 
