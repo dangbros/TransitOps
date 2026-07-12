@@ -11,6 +11,7 @@ TransitOps streamlines this workflow with a connected backend state engine and a
 
 ### Core Features
 * **Live KPI Operations Dashboard**: Tracks overall utilization rate, active vs. pending dispatches, driver availability, operating margins (ROI), maintenance overheads, and average fuel efficiency (calculated dynamically from completed trip fuel logs).
+* **Appearance Theme Toggle**: Switch dynamically between a crisp light appearance and a premium dark theme (persisting preferences via `localStorage`).
 * **Smart Dispatch Locking (State Machine)**: You cannot assign a driver or vehicle to a trip unless their database status is `"Available"`.
 * **Automatic Maintenance Lockout**: When a vehicle is logged for maintenance by a Safety Officer, its database status shifts to `"In Shop"` and is **automatically hidden** from the dispatch trip dropdown. Marking maintenance complete releases it back into the available pool.
 * **Auto-Dispatch**: Creating a trip moves the assigned vehicle and driver statuses to `"On Trip"` in a single database transaction. Deleting or canceling a trip automatically releases them back to `"Available"`.
