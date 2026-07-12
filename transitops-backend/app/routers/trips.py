@@ -172,3 +172,30 @@ def cancel_trip(
     session.commit()
     session.refresh(trip)
     return trip
+
+
+@router.delete("/{trip_id}")
+def delete_trip(
+    trip_id: int,
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(require_roles("Fleet Manager")),
+):
+    trip = session.get(Trip, trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+    # If deleting a currently dispatched trip, release driver and vehicle
+    if trip.status == TripStatus.dispatched:
+        vehicle = session.get(Vehicle, trip.vehicle_id)
+        if vehicle:
+            vehicle.status = VehicleStatus.available
+            session.add(vehicle)
+        
+        driver = session.get(Driver, trip.driver_id)
+        if driver:
+            driver.status = DriverStatus.available
+            session.add(driver)
+
+    session.delete(trip)
+    session.commit()
+    return {"message": "Trip record deleted"}
