@@ -1,198 +1,221 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
-    FaShieldAlt,
-    FaExclamationTriangle,
-    FaClipboardCheck,
-    FaIdCard,
+  FaShieldAlt,
+  FaClipboardCheck,
+  FaPlus,
 } from "react-icons/fa";
+import { toast } from "react-hot-toast";
+import { getVehicles, getMaintenance, createMaintenance, completeMaintenance } from "../api/auth";
 
 const SafetyOfficerPage = () => {
-    const cards = [
-        {
-            title: "Vehicles Due for Inspection",
-            value: 12,
-            icon: <FaClipboardCheck />,
-            color: "text-blue-600",
-            bg: "bg-blue-100",
-        },
-        {
-            title: "Expired Driver Licenses",
-            value: 3,
-            icon: <FaIdCard />,
-            color: "text-red-600",
-            bg: "bg-red-100",
-        },
-        {
-            title: "Safety Alerts",
-            value: 8,
-            icon: <FaExclamationTriangle />,
-            color: "text-yellow-600",
-            bg: "bg-yellow-100",
-        },
-        {
-            title: "Fleet Safety Score",
-            value: "92%",
-            icon: <FaShieldAlt />,
-            color: "text-green-600",
-            bg: "bg-green-100",
-        },
-    ];
+  const [vehicles, setVehicles] = useState([]);
+  const [maintenance, setMaintenance] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-    const inspections = [
-        {
-            vehicle: "TRK-101",
-            date: "15 Jul 2026",
-            status: "Pending",
-        },
-        {
-            vehicle: "TRK-108",
-            date: "16 Jul 2026",
-            status: "Pending",
-        },
-        {
-            vehicle: "VAN-205",
-            date: "17 Jul 2026",
-            status: "Pending",
-        },
-    ];
+  // Form State matching MaintenanceCreate schema exactly
+  const [showLogModal, setShowLogModal] = useState(false);
+  const [logForm, setLogForm] = useState({
+    vehicle_id: "",
+    description: "",
+    cost: "",
+  });
 
-    const alerts = [
-        "Driver John Smith's license expires in 5 days.",
-        "Truck TRK-115 missed scheduled inspection.",
-        "Two vehicles reported brake issues.",
-        "Safety score dropped below 80 for Driver Alex.",
-    ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [vData, mData] = await Promise.all([getVehicles(), getMaintenance()]);
+      setVehicles(vData);
+      setMaintenance(mData);
+    } catch (err) {
+      toast.error(err.message || "Failed to load safety data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="p-8 bg-gray-100 min-h-full">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">
-                    Safety Officer Dashboard
-                </h1>
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-                <p className="text-gray-500 mt-2">
-                    Monitor inspections, compliance, and fleet safety.
-                </p>
-            </div>
+  const handleLogSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        vehicle_id: Number(logForm.vehicle_id),
+        description: logForm.description,
+        cost: Number(logForm.cost) || 0,
+      };
+      await createMaintenance(payload);
+      toast.success("Maintenance log created successfully!");
+      setShowLogModal(false);
+      setLogForm({ vehicle_id: "", description: "", cost: "" });
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || "Failed to log maintenance.");
+    }
+  };
 
-            {/* Cards */}
-            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                {cards.map((card) => (
-                    <div
-                        key={card.title}
-                        className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 hover:shadow-lg transition"
-                    >
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <p className="text-sm text-gray-500">{card.title}</p>
+  const handleResolve = async (id) => {
+    try {
+      await completeMaintenance(id);
+      toast.success("Maintenance marked as completed.");
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || "Failed to complete maintenance.");
+    }
+  };
 
-                                <h2 className="text-3xl font-bold mt-2">
-                                    {card.value}
-                                </h2>
-                            </div>
+  const getVehicleInfo = (vId) => {
+    const vehicle = vehicles.find((v) => v.id === vId);
+    return vehicle ? `${vehicle.name_model} (${vehicle.registration_number})` : `Vehicle #${vId}`;
+  };
 
-                            <div
-                                className={`w-14 h-14 rounded-full flex items-center justify-center ${card.bg}`}
-                            >
-                                <span className={`${card.color} text-2xl`}>
-                                    {card.icon}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Inspection Schedule & Alerts */}
-            <div className="grid lg:grid-cols-2 gap-6 mt-8">
-
-                {/* Upcoming Inspections */}
-                <div className="bg-white rounded-2xl border shadow-sm p-6">
-                    <h2 className="text-xl font-semibold mb-5">
-                        Upcoming Inspections
-                    </h2>
-
-                    <div className="space-y-4">
-                        {inspections.map((item, index) => (
-                            <div
-                                key={index}
-                                className="flex justify-between items-center border rounded-xl p-4"
-                            >
-                                <div>
-                                    <h3 className="font-semibold">{item.vehicle}</h3>
-                                    <p className="text-sm text-gray-500">
-                                        Inspection: {item.date}
-                                    </p>
-                                </div>
-
-                                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                                    {item.status}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Safety Alerts */}
-                <div className="bg-white rounded-2xl border shadow-sm p-6">
-                    <h2 className="text-xl font-semibold mb-5">
-                        Recent Safety Alerts
-                    </h2>
-
-                    <div className="space-y-4">
-                        {alerts.map((alert, index) => (
-                            <div
-                                key={index}
-                                className="flex items-start gap-3 border-b pb-4"
-                            >
-                                <FaExclamationTriangle className="text-yellow-500 mt-1" />
-
-                                <p className="text-gray-700">
-                                    {alert}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Driver Safety Scores */}
-            <div className="bg-white rounded-2xl border shadow-sm mt-8 p-6">
-                <h2 className="text-xl font-semibold mb-6">
-                    Driver Safety Scores
-                </h2>
-
-                <div className="space-y-5">
-                    {[
-                        { name: "John Smith", score: 95 },
-                        { name: "Alex Johnson", score: 78 },
-                        { name: "Rahul Das", score: 88 },
-                        { name: "David Lee", score: 91 },
-                    ].map((driver) => (
-                        <div key={driver.name}>
-                            <div className="flex justify-between mb-2">
-                                <span>{driver.name}</span>
-                                <span>{driver.score}%</span>
-                            </div>
-
-                            <div className="w-full bg-gray-200 rounded-full h-3">
-                                <div
-                                    className={`h-3 rounded-full ${driver.score >= 90
-                                            ? "bg-green-500"
-                                            : driver.score >= 80
-                                                ? "bg-yellow-500"
-                                                : "bg-red-500"
-                                        }`}
-                                    style={{ width: `${driver.score}%` }}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+  return (
+    <div className="p-8 bg-slate-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-800">Safety & Maintenance</h1>
+          <p className="text-slate-500 mt-1">Log Inspections, resolve safety alerts, and view compliance.</p>
         </div>
-    );
+
+        <button
+          onClick={() => setShowLogModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition"
+        >
+          <FaPlus size={12} /> Log Maintenance
+        </button>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-400">Total Inspections Logged</p>
+            <h3 className="text-3xl font-bold text-slate-800 mt-2">{maintenance.length}</h3>
+          </div>
+          <div className="text-blue-600 p-4 bg-slate-50 rounded-xl"><FaClipboardCheck size={24} /></div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-400">Fleet Safety Score</p>
+            <h3 className="text-3xl font-bold text-slate-800 mt-2">96%</h3>
+          </div>
+          <div className="text-green-600 p-4 bg-slate-50 rounded-xl"><FaShieldAlt size={24} /></div>
+        </div>
+      </div>
+
+      {/* Maintenance Logs */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8">
+        <h2 className="text-xl font-bold text-slate-800 mb-6">Recent Maintenance & Inspection Log ({maintenance.length})</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 text-slate-400 text-sm font-semibold">
+                <th className="py-4">Log ID</th>
+                <th className="py-4">Vehicle</th>
+                <th className="py-4">Status</th>
+                <th className="py-4">Cost</th>
+                <th className="py-4">Details</th>
+                <th className="py-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {maintenance.map((m) => (
+                <tr key={m.id} className="text-slate-700 text-sm">
+                  <td className="py-4 font-medium">#{m.id}</td>
+                  <td className="py-4 font-semibold">{getVehicleInfo(m.vehicle_id)}</td>
+                  <td className="py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      m.status === "completed" || m.status === "Completed" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"
+                    }`}>{m.status}</span>
+                  </td>
+                  <td className="py-4 font-semibold">${m.cost.toLocaleString()}</td>
+                  <td className="py-4 text-slate-500">{m.description}</td>
+                  <td className="py-4 text-center">
+                    {(m.status === "scheduled" || m.status === "active") && (
+                      <button
+                        onClick={() => handleResolve(m.id)}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold cursor-pointer"
+                      >
+                        Complete
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Log Maintenance Modal */}
+      {showLogModal && (
+        <div className="fixed inset-0 bg-slate-900 bg-opacity-40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <h3 className="text-2xl font-bold mb-6 text-slate-800 font-bold">Log Maintenance</h3>
+            <form onSubmit={handleLogSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Select Vehicle</label>
+                <select
+                  required
+                  value={logForm.vehicle_id}
+                  onChange={(e) => setLogForm({ ...logForm, vehicle_id: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-white outline-none focus:border-blue-500"
+                >
+                  <option value="">Choose Vehicle</option>
+                  {vehicles.map((v) => (
+                    <option key={v.id} value={v.id}>{v.name_model} ({v.registration_number})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Cost ($)</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="e.g. 250"
+                  value={logForm.cost}
+                  onChange={(e) => setLogForm({ ...logForm, cost: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Log Details</label>
+                <textarea
+                  required
+                  rows="3"
+                  placeholder="e.g. Brakes changed, oil filter replaced."
+                  value={logForm.description}
+                  onChange={(e) => setLogForm({ ...logForm, description: e.target.value })}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLogModal(false);
+                    setLogForm({ vehicle_id: "", description: "", cost: "" });
+                  }}
+                  className="flex-1 py-2.5 border border-slate-200 font-semibold rounded-xl text-slate-600 hover:bg-slate-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 font-semibold rounded-xl text-white transition"
+                >
+                  Log Maintenance
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default SafetyOfficerPage;
