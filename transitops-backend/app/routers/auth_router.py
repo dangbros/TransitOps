@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from app.core.deps import get_current_user
 
 from app.core.security import (
@@ -23,20 +24,22 @@ fake_user = {
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(credentials: LoginRequest):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
 
-    if credentials.email != fake_user["email"]:
+    if form_data.username != fake_user["email"]:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
 
     if not verify_password(
-        credentials.password,
+        form_data.password,
         fake_user["password"],
     ):
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
 
@@ -57,4 +60,7 @@ def login(credentials: LoginRequest):
 def get_me(
     current_user=Depends(get_current_user),
 ):
-    return current_user
+    return {
+        "message": "Authenticated successfully",
+        "user": current_user,
+    }
