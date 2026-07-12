@@ -114,6 +114,12 @@ def complete_trip(
     vehicle = session.get(Vehicle, trip.vehicle_id)
     driver = session.get(Driver, trip.driver_id)
 
+    if payload.final_odometer < vehicle.odometer:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Final odometer ({payload.final_odometer}) cannot be less than the vehicle's current odometer ({vehicle.odometer}).",
+        )
+
     trip.status = TripStatus.completed
     trip.actual_distance = payload.actual_distance
     trip.fuel_consumed = payload.fuel_consumed
