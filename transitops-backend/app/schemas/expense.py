@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import date
+import datetime
 from typing import Optional
 
 
@@ -8,7 +8,7 @@ class ExpenseCreate(BaseModel):
     trip_id: Optional[int] = None
     category: str  # Toll, Maintenance, Other
     amount: float = Field(..., gt=0)
-    date: date
+    date: datetime.date
     description: Optional[str] = None
 
 
@@ -17,7 +17,7 @@ class ExpenseUpdate(BaseModel):
     trip_id: Optional[int] = None
     category: Optional[str] = None
     amount: Optional[float] = Field(None, gt=0)
-    date: Optional[date] = None
+    date: Optional[datetime.date] = None
     description: Optional[str] = None
 
 
@@ -27,5 +27,6 @@ class ExpenseResponse(BaseModel):
     trip_id: Optional[int]
     category: str
     amount: float
-    date: date
+    date: datetime.date
     description: Optional[str]
+
