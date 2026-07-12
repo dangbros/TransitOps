@@ -6,7 +6,7 @@ from sqlmodel import Session, select, func
 from typing import Dict, Any
 
 from app.db.database import get_session
-from app.models import Vehicle, VehicleStatus, Trip, MaintenanceLog, FuelLog
+from app.models import Vehicle, VehicleStatus, Trip, TripStatus, MaintenanceLog, FuelLog, Driver, DriverStatus
 from app.core.deps import get_current_user, require_roles
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard / Reports"])
@@ -38,7 +38,20 @@ def get_kpis(
         (vehicles_on_trip / total_non_retired * 100) if total_non_retired > 0 else 0.0
     )
 
-    # 3. Vehicle ROI Calculation
+    # 3. Trip Status Counts (Active and Pending)
+    active_trips_count = session.exec(
+        select(func.count(Trip.id)).where(Trip.status == TripStatus.dispatched)
+    ).one() or 0
+    pending_trips_count = session.exec(
+        select(func.count(Trip.id)).where(Trip.status == TripStatus.draft)
+    ).one() or 0
+
+    # 4. Drivers On Duty Count
+    drivers_on_duty_count = session.exec(
+        select(func.count(Driver.id)).where(Driver.status == DriverStatus.on_trip)
+    ).one() or 0
+
+    # 5. Financials
     total_revenue = session.exec(select(func.sum(Trip.revenue))).one() or 0.0
     total_maintenance = session.exec(select(func.sum(MaintenanceLog.cost))).one() or 0.0
     total_fuel = session.exec(select(func.sum(FuelLog.cost))).one() or 0.0
@@ -50,14 +63,30 @@ def get_kpis(
         else 0.0
     )
 
+    # 6. Fuel Efficiency Calculation from Completed Trips (Distance / Fuel)
+    completed_trips = session.exec(select(Trip).where(Trip.status == TripStatus.completed)).all()
+    total_distance_covered = sum(t.actual_distance for t in completed_trips if t.actual_distance)
+    total_fuel_consumed = sum(t.fuel_consumed for t in completed_trips if t.fuel_consumed)
+    
+    fuel_efficiency = (
+        (total_distance_covered / total_fuel_consumed)
+        if total_fuel_consumed > 0
+        else 0.0
+    )
+
     return {
         "status_distribution": status_counts,
         "fleet_utilization": round(fleet_utilization, 2),
+        "active_trips": active_trips_count,
+        "pending_trips": pending_trips_count,
+        "drivers_on_duty": drivers_on_duty_count,
+        "fuel_efficiency": round(fuel_efficiency, 2),
         "financials": {
             "total_revenue": total_revenue,
             "total_maintenance_cost": total_maintenance,
             "total_fuel_cost": total_fuel,
             "total_acquisition_cost": total_acquisition,
+            "operational_cost": total_maintenance + total_fuel,
             "overall_roi": round(roi, 4),
         },
     }

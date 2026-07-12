@@ -6,7 +6,13 @@ import {
   FaUserTie,
   FaPlus,
   FaTrash,
+  FaTools,
+  FaClock,
+  FaChartPie,
+  FaGasPump,
+  FaMoneyBillWave,
 } from "react-icons/fa";
+import { FaArrowTrendUp } from "react-icons/fa6";
 import { toast } from "react-hot-toast";
 import {
   getVehicles,
@@ -18,6 +24,8 @@ import {
   getTrips,
   createTrip,
   deleteTrip,
+  getDashboardKPIs,
+  dispatchTrip,
 } from "../api/auth";
 
 const AdminPage = () => {
@@ -27,9 +35,10 @@ const AdminPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [trips, setTrips] = useState([]);
+  const [kpiData, setKpiData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Form State matching Pydantic schemas exactly
+  // Form State
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [vehicleForm, setVehicleForm] = useState({
     name_model: "",
@@ -66,14 +75,16 @@ const AdminPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [vData, dData, tData] = await Promise.all([
+      const [vData, dData, tData, kData] = await Promise.all([
         getVehicles(),
         getDrivers(),
         getTrips(),
+        getDashboardKPIs(),
       ]);
       setVehicles(vData);
       setDrivers(dData);
       setTrips(tData);
+      setKpiData(kData);
     } catch (err) {
       toast.error(err.message || "Failed to load live database records.");
     } finally {
@@ -181,7 +192,14 @@ const AdminPage = () => {
         cargo_weight: Number(tripForm.cargo_weight),
         planned_distance: Number(tripForm.planned_distance),
       };
-      await createTrip(payload);
+      const response = await createTrip(payload);
+      
+      // Auto-dispatch the created draft trip to lock in driver & vehicle statuses
+      const newTrip = response.data || response;
+      if (newTrip && newTrip.id) {
+        await dispatchTrip(newTrip.id);
+      }
+
       toast.success("Trip dispatched successfully!");
       setShowTripModal(false);
       setTripForm({
@@ -209,13 +227,19 @@ const AdminPage = () => {
     }
   };
 
-  // Static KPI Card details mapped to state lengths
-  const kpis = [
-    { title: "Total Registered Vehicles", value: vehicles.length, color: "text-green-600", icon: <FaTruck size={24} /> },
-    { title: "Available Vehicles", value: vehicles.filter(v => v.status === "Available" || v.status === "available").length, color: "text-blue-600", icon: <FaWarehouse size={24} /> },
-    { title: "Registered Drivers", value: drivers.length, color: "text-indigo-600", icon: <FaUserTie size={24} /> },
-    { title: "Total Assigned Trips", value: trips.length, color: "text-purple-600", icon: <FaRoute size={24} /> },
-  ];
+  // Live KPI mappings matching specifications exactly
+  const liveKpis = kpiData ? [
+    { title: "Active Vehicles (On Trip)", value: kpiData.status_distribution?.["On Trip"] || 0, color: "text-green-600", icon: <FaTruck size={22} /> },
+    { title: "Available Vehicles", value: kpiData.status_distribution?.Available || 0, color: "text-blue-600", icon: <FaWarehouse size={22} /> },
+    { title: "Vehicles In Shop", value: kpiData.status_distribution?.["In Shop"] || 0, color: "text-red-600", icon: <FaTools size={22} /> },
+    { title: "Active Trips", value: kpiData.active_trips || 0, color: "text-indigo-600", icon: <FaRoute size={22} /> },
+    { title: "Pending Trips", value: kpiData.pending_trips || 0, color: "text-yellow-600", icon: <FaClock size={22} /> },
+    { title: "Drivers On Duty", value: kpiData.drivers_on_duty || 0, color: "text-teal-600", icon: <FaUserTie size={22} /> },
+    { title: "Fleet Utilization", value: `${kpiData.fleet_utilization || 0}%`, color: "text-cyan-600", icon: <FaChartPie size={22} /> },
+    { title: "Fuel Efficiency", value: `${kpiData.fuel_efficiency || 0} km/L`, color: "text-orange-600", icon: <FaGasPump size={22} /> },
+    { title: "Operational Cost", value: `$${(kpiData.financials?.operational_cost || 0).toLocaleString()}`, color: "text-rose-600", icon: <FaMoneyBillWave size={22} /> },
+    { title: "Overall Vehicle ROI", value: `${((kpiData.financials?.overall_roi || 0) * 100).toFixed(2)}%`, color: "text-emerald-600", icon: <FaArrowTrendUp size={22} /> },
+  ] : [];
 
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
@@ -245,14 +269,14 @@ const AdminPage = () => {
       {/* Overview Tab */}
       {activeTab === "overview" && (
         <div className="space-y-8">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {kpis.map((kpi, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {liveKpis.map((kpi, idx) => (
+              <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition">
                 <div>
-                  <p className="text-sm font-semibold text-slate-400">{kpi.title}</p>
-                  <h3 className="text-3xl font-bold text-slate-800 mt-2">{kpi.value}</h3>
+                  <p className="text-xs font-semibold text-slate-400">{kpi.title}</p>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-2">{kpi.value}</h3>
                 </div>
-                <div className={`${kpi.color} p-4 bg-slate-50 rounded-xl`}>{kpi.icon}</div>
+                <div className={`${kpi.color} p-3.5 bg-slate-50 rounded-xl`}>{kpi.icon}</div>
               </div>
             ))}
           </div>
@@ -306,7 +330,7 @@ const AdminPage = () => {
                     <td className="py-4">${v.acquisition_cost.toLocaleString()}</td>
                     <td className="py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        v.status === "Available" || v.status === "available" ? "bg-green-55 text-green-700" : "bg-yellow-55 text-yellow-700"
+                        v.status === "Available" || v.status === "available" ? "bg-green-50 text-green-700" : "bg-yellow-55 text-yellow-700"
                       }`}>{v.status}</span>
                     </td>
                     <td className="py-4 text-center">
@@ -361,7 +385,7 @@ const AdminPage = () => {
                     <td className="py-4 font-mono">{d.license_expiry_date}</td>
                     <td className="py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        d.status === "Available" || d.status === "available" ? "bg-green-55 text-green-700" : "bg-yellow-55 text-yellow-700"
+                        d.status === "Available" || d.status === "available" ? "bg-green-50 text-green-700" : "bg-yellow-55 text-yellow-700"
                       }`}>{d.status}</span>
                     </td>
                     <td className="py-4 text-center">
@@ -418,7 +442,7 @@ const AdminPage = () => {
                     <td className="py-4 font-mono">#{t.driver_id}</td>
                     <td className="py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        t.status === "Completed" || t.status === "completed" ? "bg-green-50 text-green-700" : "bg-blue-50 text-blue-700"
+                        t.status === "Completed" || t.status === "completed" ? "bg-green-55 text-green-700" : "bg-blue-55 text-blue-700"
                       }`}>{t.status}</span>
                     </td>
                     <td className="py-4 text-center">
@@ -441,7 +465,7 @@ const AdminPage = () => {
       {showVehicleModal && (
         <div className="fixed inset-0 bg-slate-900 bg-opacity-40 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-            <h3 className="text-2xl font-bold mb-6 text-slate-800">Add Fleet Vehicle</h3>
+            <h3 className="text-2xl font-bold mb-6 text-slate-800 font-bold">Add Fleet Vehicle</h3>
             <form onSubmit={handleAddVehicle} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-1">Model Name</label>

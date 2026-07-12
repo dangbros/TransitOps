@@ -7,12 +7,13 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import { getTrips, completeTrip, getVehicles } from "../api/auth";
+import { getTrips, completeTrip, getVehicles, getDrivers } from "../api/auth";
 
 const DriverPage = () => {
   const { user } = useAuth();
   const [trips, setTrips] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Completion State
@@ -28,9 +29,10 @@ const DriverPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [tData, vData] = await Promise.all([getTrips(), getVehicles()]);
+      const [tData, vData, dData] = await Promise.all([getTrips(), getVehicles(), getDrivers()]);
       setTrips(tData);
       setVehicles(vData);
+      setDrivers(dData);
     } catch (err) {
       toast.error(err.message || "Failed to load driver schedule.");
     } finally {
@@ -41,6 +43,23 @@ const DriverPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Match the logged-in user to their driver profile (matching email prefix to driver name)
+  const getMatchedDriver = () => {
+    if (!user || !user.email) return null;
+    const emailPrefix = user.email.split("@")[0].toLowerCase();
+    
+    // Try to find a driver whose name matches or contains the email prefix
+    const matched = drivers.find((d) => d.name.toLowerCase().includes(emailPrefix));
+    // Fallback to driver@transitops.com matching Alex Carter (default seed)
+    if (!matched && emailPrefix === "driver") {
+      return drivers.find((d) => d.name === "Alex Carter");
+    }
+    return matched;
+  };
+
+  const currentDriver = getMatchedDriver();
+  const driverId = currentDriver ? currentDriver.id : null;
 
   const handleCompleteSubmit = async (e) => {
     e.preventDefault();
@@ -67,18 +86,28 @@ const DriverPage = () => {
     return vehicle ? `${vehicle.name_model} (${vehicle.registration_number})` : `Vehicle #${vId}`;
   };
 
-  // Find dispatched trips
-  const activeTrips = trips.filter((t) => t.status === "Dispatched" || t.status === "dispatched");
-  const completedTrips = trips.filter((t) => t.status === "Completed" || t.status === "completed");
+  // Filter trips by matched driver ID
+  const activeTrips = trips.filter(
+    (t) =>
+      (t.status === "Dispatched" || t.status === "dispatched") &&
+      (driverId ? t.driver_id === driverId : true)
+  );
+  const completedTrips = trips.filter(
+    (t) =>
+      (t.status === "Completed" || t.status === "completed") &&
+      (driverId ? t.driver_id === driverId : true)
+  );
 
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-slate-800">
-          Welcome back! 👋
+          Welcome back, {currentDriver ? currentDriver.name : (user?.email || "Driver")}! 👋
         </h1>
         <p className="text-slate-500 mt-1">
-          Here is your dispatch schedule and trip statuses.
+          {currentDriver 
+            ? `Displaying dispatch schedule for Driver Profile #${currentDriver.id}.`
+            : "Please ensure your driver profile name matches your email prefix to sync assignments."}
         </p>
       </div>
 

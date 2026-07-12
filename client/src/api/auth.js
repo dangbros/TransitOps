@@ -31,6 +31,8 @@ export const deleteDriver = (id) => axiosClient.delete(`/drivers/${id}`);
 export const getTrips = () => axiosClient.get("/trips");
 export const createTrip = (data) => axiosClient.post("/trips", data);
 export const updateTrip = (id, data) => axiosClient.put(`/trips/${id}`, data);
+export const dispatchTrip = (id) => axiosClient.post(`/trips/${id}/dispatch`);
+export const cancelTrip = (id) => axiosClient.post(`/trips/${id}/cancel`);
 export const completeTrip = (id, payload) => 
   axiosClient.post(`/trips/${id}/complete`, payload);
 export const deleteTrip = (id) => axiosClient.delete(`/trips/${id}`);
@@ -43,3 +45,6 @@ export const completeMaintenance = (id) => axiosClient.post(`/maintenance/${id}/
 // Expenses CRUD
 export const getExpenses = () => axiosClient.get("/expenses");
 export const createExpense = (data) => axiosClient.post("/expenses", data);
+
+// Dashboard KPIs
+export const getDashboardKPIs = () => axiosClient.get("/dashboard/kpis");

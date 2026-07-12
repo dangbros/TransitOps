@@ -87,40 +87,40 @@ const BasePage = () => {
                             </Link>
                         </div>
 
-                        <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 w-[45%]">
+                        <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 w-[60%] text-slate-800">
                             <h3 className="text-sm font-semibold text-blue-700 mb-3">
-                                Demo Credentials
+                                Demo Credentials (Database Active)
                             </h3>
 
-                            <div className="space-y-2 text-xs text-gray-700">
-                                <div className="flex justify-between">
+                            <div className="space-y-2 text-xs">
+                                <div className="flex justify-between gap-4">
                                     <span>👨‍💼 Fleet Manager</span>
-                                    <span className="font-medium">manager@demo.com</span>
+                                    <span className="font-semibold">fleetmanager@transitops.com</span>
                                 </div>
 
-                                <div className="flex justify-between">
+                                <div className="flex justify-between gap-4">
                                     <span>🚚 Driver</span>
-                                    <span className="font-medium">driver@demo.com</span>
+                                    <span className="font-semibold">driver@transitops.com</span>
                                 </div>
 
-                                <div className="flex justify-between">
+                                <div className="flex justify-between gap-4">
                                     <span>🦺 Safety Officer</span>
-                                    <span className="font-medium">safety@demo.com</span>
+                                    <span className="font-semibold">safety@transitops.com</span>
                                 </div>
 
-                                <div className="flex justify-between">
+                                <div className="flex justify-between gap-4">
                                     <span>💰 Financial Analyst</span>
-                                    <span className="font-medium">finance@demo.com</span>
+                                    <span className="font-semibold">finance@transitops.com</span>
                                 </div>
                             </div>
 
                             <div className="mt-3 flex items-center justify-between rounded-lg bg-white border border-blue-100 px-3 py-2">
-                                <span className="text-xs font-medium text-gray-600">
-                                    Password
+                                <span className="text-xs font-semibold text-gray-600">
+                                    Password (for all)
                                 </span>
 
-                                <code className="text-xs font-semibold text-blue-700">
-                                    Password@123
+                                <code className="text-xs font-bold text-blue-700">
+                                    password123
                                 </code>
                             </div>
                         </div>
