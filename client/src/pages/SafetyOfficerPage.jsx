@@ -134,7 +134,7 @@ const SafetyOfficerPage = () => {
                   <td className="py-4 font-semibold">${m.cost.toLocaleString()}</td>
                   <td className="py-4 text-slate-500">{m.description}</td>
                   <td className="py-4 text-center">
-                    {(m.status === "scheduled" || m.status === "active") && (
+                    {m.status && m.status.toLowerCase() === "open" && (
                       <button
                         onClick={() => handleResolve(m.id)}
                         className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-semibold cursor-pointer"

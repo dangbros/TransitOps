@@ -742,7 +742,7 @@ const AdminPage = () => {
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-white outline-none focus:border-blue-500"
                 >
                   <option value="">Select Vehicle</option>
-                  {vehicles.filter(v => v.status === "Available" || v.status === "available").map(v => (
+                  {vehicles.filter(v => v.status && v.status.toLowerCase() === "available").map(v => (
                     <option key={v.id} value={v.id}>{v.name_model} ({v.registration_number})</option>
                   ))}
                 </select>
@@ -756,7 +756,7 @@ const AdminPage = () => {
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-white outline-none focus:border-blue-500"
                 >
                   <option value="">Select Driver</option>
-                  {drivers.filter(d => d.status === "Available" || d.status === "available").map(d => (
+                  {drivers.filter(d => d.status && d.status.toLowerCase() === "available").map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
